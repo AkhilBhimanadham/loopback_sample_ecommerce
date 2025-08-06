@@ -1,10 +1,10 @@
 {
   "db": {
     "host": "localhost",
-    "port": 5432,
-    "database": "postgres",
+    "port": 5433,
+    "database": "loopack_ecomDB",
     "username": "postgres",
-    "password": "2913",
+    "password": "2466",
     "name": "db",
     "connector": "postgresql"
   }
