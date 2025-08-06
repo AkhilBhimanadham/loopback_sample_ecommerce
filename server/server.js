@@ -35,16 +35,12 @@ boot(app, __dirname, function(err) {
   if (err) throw err;
   const swaggerDocumentUrl = 'http://localhost:3000/explorer/swagger.json';
 
-<<<<<<< HEAD
   app.enableAuth();
-
-=======
   app.use('/docs', swaggerUi.serve, swaggerUi.setup(null, {
     swaggerUrl: swaggerDocumentUrl,
     explorer: true,
     customSiteTitle: "My LoopBack API Docs"
   }));
->>>>>>> dac3d091e0ecc6fa2225981fccc42a25b9ac584f
   // start the server if `$ node server.js`
   if (require.main === module)
     app.start();
