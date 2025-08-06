@@ -1,0 +1,32 @@
+{
+  "name": "order",
+  "plural": "orders",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "totalAmount": {
+      "type": "number",
+      "required": false
+    }
+  },
+  "validations": [],
+  "relations": {
+    "orderItems": {
+      "type": "hasMany",
+      "model": "OrderItem",
+      "foreignKey": "orderId"
+    },
+    "products": {
+      "type": "hasMany",
+      "model": "Product",
+      "through": "OrderItem",
+      "foreignKey": "orderId",
+      "keyThrough": "productId"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}
