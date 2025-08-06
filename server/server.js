@@ -4,7 +4,7 @@
 // License text available at https://opensource.org/licenses/MIT
 
 'use strict';
-
+require('dotenv').config();
 const loopback = require('loopback');
 const boot = require('loopback-boot');
 
