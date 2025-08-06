@@ -6,6 +6,7 @@
 'use strict';
 require('dotenv').config();
 const loopback = require('loopback');
+const swaggerUi = require('swagger-ui-express');
 const boot = require('loopback-boot');
 
 const app = module.exports = loopback();
@@ -27,7 +28,13 @@ app.start = function() {
 // Sub-apps like REST API are mounted via boot scripts.
 boot(app, __dirname, function(err) {
   if (err) throw err;
+  const swaggerDocumentUrl = 'http://localhost:3000/explorer/swagger.json';
 
+  app.use('/docs', swaggerUi.serve, swaggerUi.setup(null, {
+    swaggerUrl: swaggerDocumentUrl,
+    explorer: true,
+    customSiteTitle: "My LoopBack API Docs"
+  }));
   // start the server if `$ node server.js`
   if (require.main === module)
     app.start();
