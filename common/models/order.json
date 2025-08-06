@@ -10,7 +10,12 @@
     "totalAmount": {
       "type": "number",
       "required": false
+    },
+    "userId": {
+      "type": "number",
+      "required": true
     }
+
   },
   "validations": [],
   "relations": {
@@ -25,7 +30,13 @@
       "through": "OrderItem",
       "foreignKey": "orderId",
       "keyThrough": "productId"
+    },
+    "user": {
+      "type": "belongsTo",
+      "model": "User",
+      "foreignKey": "userId"
     }
+
   },
   "acls": [],
   "methods": {}
