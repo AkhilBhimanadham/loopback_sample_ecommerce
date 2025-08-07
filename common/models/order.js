@@ -39,7 +39,7 @@ module.exports = function(Orders) {
 
       sum += prod.price * item.quantity;
       prod.quantity -= item.quantity;
-      await prod.save();
+      await prod.save(options); // 👈 pass accessToken forward
 
       await OrderItem.create({
         orderId: order.id,

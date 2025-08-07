@@ -3,7 +3,11 @@ module.exports = function(app) {
   const AccessToken = app.models.AccessToken;
 
   AccessToken.observe('access', function(ctx, next) {
-    if (!ctx.accessToken) return next();
+    if (!ctx.accessToken) {
+        console.log("no ctx.accessToken");
+        return next();
+
+    }
 
     User.findById(ctx.accessToken.userId, function(err, user) {
       if (err) return next(err);
