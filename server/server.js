@@ -26,7 +26,7 @@ app.start = function() {
 
 app.use(loopback.token({
   model: app.models.AccessToken,
-  currentUserLiteral: 'me'
+  currentUserLiteral: 'me',
 }));
 
 // Bootstrap the application, configure models, datasources and middleware.
@@ -39,7 +39,7 @@ boot(app, __dirname, function(err) {
   app.use('/docs', swaggerUi.serve, swaggerUi.setup(null, {
     swaggerUrl: swaggerDocumentUrl,
     explorer: true,
-    customSiteTitle: "My LoopBack API Docs"
+    customSiteTitle: 'My LoopBack API Docs',
   }));
   // start the server if `$ node server.js`
   if (require.main === module)
