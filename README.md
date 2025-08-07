@@ -21,8 +21,6 @@ This backend serves as the foundation for a scalable e-commerce system or any in
 │       ├── order.js / order.json
 │       ├── product.js / product.json
 │       └── order-item.js / order-item.json
-├── models/                     # Optional server-specific model customizations
-│   └── (same model files as in common/)
 ├── server/
 │   ├── boot/                   # Boot scripts run during app startup
 │   │   ├── root.js
@@ -36,7 +34,6 @@ This backend serves as the foundation for a scalable e-commerce system or any in
 │   ├── component-config.json   # LoopBack components like API explorer
 │   ├── middleware.json         # Global middleware settings
 │   └── middleware.development.json # Development-only middleware
-├── boot/                       # Duplicate boot folder (can be cleaned up)
 
 ````
 
@@ -46,8 +43,8 @@ This backend serves as the foundation for a scalable e-commerce system or any in
 
 - **Node.js** (v10+)
 - **LoopBack 3**
-- **PostgreSQL / MongoDB / MySQL** (as configured)
-- **JWT Authentication (optional)**
+- **PostgreSQL**
+- **JWT Authentication** 
 - **REST APIs**
 
 ---
@@ -74,18 +71,26 @@ npm install
 ```json
 {
   "db": {
-    "host": "localhost",
-    "port": 5432,
-    "database": "ecommerce",
-    "username": "postgres",
-    "password": "yourpassword",
+    "host": "${DB_HOST}",
+    "port": "${DB_PORT}",
+    "database": "${DB_NAME}",
+    "username": "${DB_USER}",
+    "password": "${DB_PASS}",
     "name": "db",
     "connector": "postgresql"
   }
 }
+
 ```
 
-> You can also use environment variables or `.env` (requires minor refactor).
+ `.env` :
+
+DB_HOST=
+DB_PORT=
+DB_NAME=
+DB_USER=
+DB_PASS=
+
 
 ### 4. Run the App
 
@@ -102,7 +107,7 @@ API Explorer: [http://localhost:3000/explorer](http://localhost:3000/explorer)
 
 ### User
 
-* Fields: `id`, `username`, `email`, `password`, `createdAt`, `updatedAt`
+* Fields: `id`, `username`, `email`, `password`,`role`, `createdAt`, `updatedAt`
 * Relations:
 
   * `hasMany` Orders
@@ -149,28 +154,28 @@ Some typical endpoints exposed by LoopBack:
 
 ### User APIs
 
-* `POST /users` – Register new user
-* `POST /users/login` – Authenticate
-* `GET /users/:id` – Get user by ID
-* `GET /users/:id/orders` – Get user orders
+* `POST /users` – Register new user 
+* `POST /users/login` – Authenticate  - user and admin
+* `GET /users/:id` – Get user by ID - admin
+* `GET /users/:id/orders` – Get user orders - user and admin
 
 ### Product APIs
 
-* `GET /products` – List all products
-* `POST /products` – Create a new product
-* `PUT /products/:id` – Update a product
-* `DELETE /products/:id` – Delete a product
+* `GET /products` – List all products - admin and user
+* `POST /products` – Create a new product - only admin
+* `PUT /products/:id` – Update a product - only admin
+* `DELETE /products/:id` – Delete a product - only admin
 
 ### Order APIs
 
-* `POST /orders` – Create a new order
-* `GET /orders/:id` – Get order by ID
-* `GET /orders/:id/items` – List order items
+* `POST /orders` – Create a new order - user and admin
+* `GET /orders/:id` – Get order by ID - admin
+* `GET /orders/:id/items` – List order items - user adn admin
 
 ### OrderItem APIs
 
-* `GET /order-items` – View all order items
-* `POST /order-items` – Add a line item to an order
+* `GET /order-items` – View all order items - admin
+* `POST /order-items` – Add a line item to an order - admin
 
 > You can explore and test these using the built-in API Explorer.
 
@@ -218,78 +223,3 @@ const sampleProducts = [
 
 ---
 
-## 🧰 Useful NPM Scripts
-
-```bash
-npm start           # Start the server
-npm run lint        # Lint JS code
-```
-
----
-
-## 📦 Deployment
-
-You can deploy this application using:
-
-* **Docker**
-* **Heroku**
-* **VPS (PM2 + Nginx)**
-
-Make sure to:
-
-* Use production database settings.
-* Configure CORS, HTTPS, and logging for production.
-* Disable API Explorer in production via `component-config.json`.
-
----
-
-## 🧹 Cleanup Recommendations
-
-* Remove duplicate `boot/` folder outside `server/` unless intentionally used.
-* Use `.env` + `dotenv` to securely store credentials.
-* Add unit tests with Mocha or Jest.
-* Consider using LoopBack 4 for new projects (LB3 is legacy).
-
----
-
-## ✨ Future Enhancements
-
-* Add Stripe/PayPal integration for payments
-* Enable user roles/ACLs
-* Add image upload for products
-* Pagination and filtering for listings
-* Switch to LoopBack 4 or NestJS for long-term support
-
----
-
-## 🧑‍💻 Contributing
-
-Contributions are welcome!
-
-1. Fork this repo
-2. Create a new branch (`git checkout -b feature-x`)
-3. Commit your changes
-4. Push to the branch
-5. Create a PR
-
----
-
-## 📄 License
-
-This project is licensed under the [MIT License](LICENSE).
-
----
-
-## 📞 Contact
-
-For questions or suggestions, contact:
-📧 [your.email@example.com](mailto:your.email@example.com)
-🔗 \[Your LinkedIn / GitHub]
-
----
-
-## 🙌 Acknowledgements
-
-* [LoopBack](https://loopback.io/)
-* [Node.js](https://nodejs.org/)
-* [PostgreSQL](https://www.postgresql.org/)
