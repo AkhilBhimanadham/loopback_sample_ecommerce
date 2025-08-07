@@ -12,52 +12,56 @@ module.exports = function(Orders) {
     next();
   });
 
-  Orders.createOrder = async function(orderData, options) {
-const token = options && options.accessToken;
+ Orders.createOrder = async function(orderData, options) {
+  const token = options && options.accessToken;
   if (!token || !token.userId) {
-    throw new Error('User must be authenticated');
+    throw new Error('User must bbe authenticated');
   }
 
-  // Pass `options` so accessToken reaches before save hook
+  // Create order and pass options so accessToken reaches observer
   const order = await Orders.create({ totalAmount: 0 }, options);
-      const OrderItem = Orders.app.models.orderItem;
-    let sum = 0;
 
-    if (orderData.items && orderData.items.length > 0) {
-      for (const item of orderData.items) {
-        let prod = await Orders.app.models.Product.findById(item.productId);
-        if (!prod) {
-          throw new Error(`Product with id ${item.productId} not found`);
-        }
-        if (item.quantity <= 0) {
-          throw new Error(`Quantity for product ${item.productId} must be greater than zero`);
-        }
-        if (item.quantity > prod.quantity) {
-          throw new Error(`Insufficient stock for product ${item.productId}`);
-        }
+  const OrderItem = Orders.app.models.orderItem;
+  let sum = 0;
 
-        sum += prod.price * item.quantity;
-        prod.quantity -= item.quantity;
-        await prod.save();
-
-        await OrderItem.create({
-          orderId: order.id,
-          productId: item.productId,
-          quantity: item.quantity
-        });
+  if (orderData.items && orderData.items.length > 0) {
+    for (const item of orderData.items) {
+      const prod = await Orders.app.models.Product.findById(item.productId);
+      if (!prod) {
+        throw new Error(`Product with id ${item.productId} not found`);
       }
-    }
+      if (item.quantity <= 0) {
+        throw new Error(`Quantity for product ${item.productId} must be greater than zero`);
+      }
+      if (item.quantity > prod.quantity) {
+        throw new Error(`Insufficient stock for product ${item.productId}`);
+      }
 
-    order.totalAmount = sum;
-  
-    await order.save();
-    return order;
-  };
+      sum += prod.price * item.quantity;
+      prod.quantity -= item.quantity;
+      await prod.save();
+
+      await OrderItem.create({
+        orderId: order.id,
+        productId: item.productId,
+        quantity: item.quantity
+      });
+    }
+  }
+
+  order.totalAmount = sum;
+  await order.save();
+
+  return order;
+};
+
 
   Orders.remoteMethod('createOrder', {
     http: { verb: 'post', path: '/createOrder' },
-    accepts: { arg: 'orderData', type: 'object', http: { source: 'body' } },
-    returns: { arg: 'order', type: 'object', root: true }
+accepts: [
+    { arg: 'orderData', type: 'object', http: { source: 'body' } },
+    { arg: 'options', type: 'object', http: 'optionsFromRequest' } // 👈 this is the missing part!
+  ],    returns: { arg: 'order', type: 'object', root: true }
   });
 
 };
