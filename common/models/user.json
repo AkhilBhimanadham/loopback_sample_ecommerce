@@ -22,6 +22,11 @@
       "type": "string",
       "required": true
     },
+    "role":{
+      "type": "number",
+      "required": false,
+      "defaultFn": 0
+    },
     "created_at": {
       "type": "date",
       "defaultFn": "now"

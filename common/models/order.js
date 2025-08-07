@@ -2,9 +2,25 @@
 
 module.exports = function(Orders) {
 
-  Orders.createOrder = async function(orderData) {
-    const order = await Orders.create({ totalAmount: 0 });
-    const OrderItem = Orders.app.models.orderItem;
+  Orders.observe('before save', function(ctx, next) {
+    const token = ctx.options && ctx.options.accessToken;
+
+    if (ctx.isNewInstance && token && token.userId) {
+      ctx.instance.userId = token.userId; // Set userId from token
+    }
+
+    next();
+  });
+
+  Orders.createOrder = async function(orderData, options) {
+const token = options && options.accessToken;
+  if (!token || !token.userId) {
+    throw new Error('User must be authenticated');
+  }
+
+  // Pass `options` so accessToken reaches before save hook
+  const order = await Orders.create({ totalAmount: 0 }, options);
+      const OrderItem = Orders.app.models.orderItem;
     let sum = 0;
 
     if (orderData.items && orderData.items.length > 0) {
@@ -33,6 +49,7 @@ module.exports = function(Orders) {
     }
 
     order.totalAmount = sum;
+  
     await order.save();
     return order;
   };
