@@ -11,7 +11,9 @@ module.exports = function (app) {
     ];
 
     const customAllowed = {
-      order: ['placeOrder']
+      order: ['placeOrder'],
+      AppUser: ['login']
+
     };
 
     app.models().forEach(Model => {
