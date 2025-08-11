@@ -34,18 +34,24 @@
     }
   },
   "acls": [
-    {
-      "accessType": "*",
-      "principalType": "ROLE",
-      "principalId": "$authenticated",
-      "permission": "ALLOW"
-    },
-    {
-      "accessType": "*",
-      "principalType": "ROLE",
-      "principalId": "$unauthenticated",
-      "permission": "DENY"
-    }
+  {
+    "accessType": "*",
+    "principalType": "ROLE",
+    "principalId": "admin",
+    "permission": "ALLOW"
+  },
+  {
+    "accessType": "READ",
+    "principalType": "ROLE",
+    "principalId": "customer",
+    "permission": "ALLOW"
+  },
+  {
+    "accessType": "*",
+    "principalType": "ROLE",
+    "principalId": "customer",
+    "permission": "DENY"
+  }
   ],
   "methods": {}
 }

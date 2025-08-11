@@ -2,6 +2,10 @@
 
 module.exports = function(Product) {
   Product.observe('before save', function(ctx, next) {
+ if (ctx.options && ctx.options.skipAuthCheck) {
+      return next();
+    }
+
     const accessToken = ctx.options && ctx.options.accessToken;
 
     if (!accessToken) {
@@ -13,7 +17,7 @@ module.exports = function(Product) {
     const userId = accessToken.userId;
 
     // Load the User model
-    const User = Product.app.models.User;
+    const User = Product.app.models.AppUser;
 
     User.findById(userId, function(err, user) {
       if (err || !user) {

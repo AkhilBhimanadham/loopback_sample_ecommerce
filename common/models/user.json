@@ -44,6 +44,33 @@
       "foreignKey": "userId"
     }
   },
-  "acls": [],
+  "acls": [
+  {
+    "accessType": "*",
+    "principalType": "ROLE",
+    "principalId": "admin",
+    "permission": "ALLOW"
+  },
+  {
+    "property": "create",
+    "accessType": "EXECUTE",
+    "principalType": "ROLE",
+    "principalId": "$everyone",
+    "permission": "ALLOW"
+  },
+  {
+    "property": "login",
+    "accessType": "EXECUTE",
+    "principalType": "ROLE",
+    "principalId": "$everyone",
+    "permission": "ALLOW"
+  },
+  {
+    "accessType": "*",
+    "principalType": "ROLE",
+    "principalId": "customer",
+    "permission": "DENY"
+  }
+],
   "methods": {}
 }

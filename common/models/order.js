@@ -1,67 +1,88 @@
 'use strict';
 
-module.exports = function(Orders) {
+module.exports = function(Order) {
+  Order.placeOrder = async function(items, options) {
+    const app = Order.app;
+    const Product = app.models.Product;
+    const OrderItem = app.models.OrderItem;
 
-  Orders.observe('before save', function(ctx, next) {
-    const token = ctx.options && ctx.options.accessToken;
-
-    if (ctx.isNewInstance && token && token.userId) {
-      ctx.instance.userId = token.userId; // Set userId from token
+    if (!options || !options.accessToken) {
+      const err = new Error('You must be logged in to place an order.');
+      err.statusCode = 401;
+      throw err;
     }
 
-    next();
-  });
+    const userId = options.accessToken.userId;
+    let totalAmount = 0;
+    const productData = [];
 
- Orders.createOrder = async function(orderData, options) {
-  const token = options && options.accessToken;
-  if (!token || !token.userId) {
-    throw new Error('User must bbe authenticated');
-  }
-
-  // Create order and pass options so accessToken reaches observer
-  const order = await Orders.create({ totalAmount: 0 }, options);
-
-  const OrderItem = Orders.app.models.orderItem;
-  let sum = 0;
-
-  if (orderData.items && orderData.items.length > 0) {
-    for (const item of orderData.items) {
-      const prod = await Orders.app.models.Product.findById(item.productId);
-      if (!prod) {
-        throw new Error(`Product with id ${item.productId} not found`);
-      }
-      if (item.quantity <= 0) {
-        throw new Error(`Quantity for product ${item.productId} must be greater than zero`);
-      }
-      if (item.quantity > prod.quantity) {
-        throw new Error(`Insufficient stock for product ${item.productId}`);
-      }
-
-      sum += prod.price * item.quantity;
-      prod.quantity -= item.quantity;
-      await prod.save(options); // 👈 pass accessToken forward
-
-      await OrderItem.create({
-        orderId: order.id,
-        productId: item.productId,
-        quantity: item.quantity
+    // 1️⃣ Validate all products first
+    for (let item of items) {
+      const product = await Product.findById(item.productId, {
+        accessToken: options.accessToken
       });
+
+      if (!product) throw new Error(`Product ${item.productId} not found`);
+      if (product.quantity < item.quantity) {
+        throw new Error(`Not enough stock for ${product.name}`);
+      }
+
+      productData.push({ product, quantity: item.quantity });
+      totalAmount += product.price * item.quantity;
     }
-  }
 
-  order.totalAmount = sum;
-  await order.save();
+    // 2️⃣ Create order only after all validations pass
+    const order = await Order.create(
+      { userId, totalAmount },
+      { accessToken: options.accessToken }
+    );
 
-  return order;
-};
+    // 3️⃣ Create order items and update stock
+    for (let { product, quantity } of productData) {
+      await OrderItem.create(
+        {
+          orderId: order.id,
+          productId: product.id,
+          quantity
+        },
+        { accessToken: options.accessToken }
+      );
 
+      await product.updateAttribute(
+        'quantity',
+        product.quantity - quantity,
+        { skipAuthCheck: true }
+      );
+    }
 
-  Orders.remoteMethod('createOrder', {
-    http: { verb: 'post', path: '/createOrder' },
-accepts: [
-    { arg: 'orderData', type: 'object', http: { source: 'body' } },
-    { arg: 'options', type: 'object', http: 'optionsFromRequest' } // 👈 this is the missing part!
-  ],    returns: { arg: 'order', type: 'object', root: true }
+    return order;
+  };
+
+  Order.remoteMethod('placeOrder', {
+    http: { path: '/place-order', verb: 'post' },
+    accepts: [
+      { arg: 'items', type: 'array', required: true, http: { source: 'body' } },
+      { arg: 'options', type: 'object', http: 'optionsFromRequest' }
+    ],
+    returns: { arg: 'order', type: 'object', root: true }
   });
 
+  // Restrict customer queries to their own orders
+  Order.observe('access', async function limitToOwner(ctx) {
+    if (!ctx.options || !ctx.options.accessToken || !ctx.options.accessToken.userId) {
+      return;
+    }
+
+    const userId = ctx.options.accessToken.userId;
+    const AppUser = Order.app.models.AppUser;
+    const user = await AppUser.findById(userId);
+
+    if (user && user.role === 1) {
+      return; // Admin can see all orders
+    }
+
+    ctx.query = ctx.query || {};
+    ctx.query.where = ctx.query.where || {};
+    ctx.query.where.userId = userId;
+  });
 };
