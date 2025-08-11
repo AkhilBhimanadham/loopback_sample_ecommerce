@@ -11,7 +11,7 @@ module.exports = function (app) {
     ];
 
     const customAllowed = {
-      order: ['placeOrder'],
+      order: ['placeOrder', 'getOrderItems'],
       AppUser: ['login']
 
     };

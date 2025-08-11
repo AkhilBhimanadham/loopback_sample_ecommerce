@@ -67,6 +67,55 @@ module.exports = function(Order) {
     returns: { arg: 'order', type: 'object', root: true }
   });
 
+
+  // get order items:
+
+Order.getOrderItems = async function (orderId, options) {
+    const app = Order.app;
+    const OrderItem = app.models.OrderItem;
+    const Product = app.models.Product;
+
+    if (!options || !options.accessToken) {
+      const err = new Error('You must be logged in.');
+      err.statusCode = 401;
+      throw err;
+    }
+
+    // 1️⃣ Fetch order items
+    const orderItems = await OrderItem.find({
+      where: { orderId }
+    });
+
+    if (!orderItems.length) {
+      return [];
+    }
+
+    // 2️⃣ Map product details
+    const productIds = orderItems.map(item => item.productId);
+    const products = await Product.find({ where: { id: { inq: productIds } } });
+
+    // 3️⃣ Merge product details with order item quantity
+    return orderItems.map(item => {
+      const product = products.find(p => p.id.toString() === item.productId.toString());
+      return {
+        productId: item.productId,
+        name: product ? product.name : null,
+        price: product ? product.price : null,
+        quantity: item.quantity,
+        lineTotal: product ? product.price * item.quantity : null
+      };
+    });
+  };
+
+  Order.remoteMethod('getOrderItems', {
+    http: { path: '/:id/items', verb: 'get' },
+    accepts: [
+      { arg: 'id', type: 'string', required: true, description: 'Order ID' },
+      { arg: 'options', type: 'object', http: 'optionsFromRequest' }
+    ],
+    returns: { type: 'array', root: true }
+  });
+
   // Restrict customer queries to their own orders
   Order.observe('access', async function limitToOwner(ctx) {
     if (!ctx.options || !ctx.options.accessToken || !ctx.options.accessToken.userId) {
